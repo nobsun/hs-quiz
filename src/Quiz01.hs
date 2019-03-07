@@ -5,7 +5,7 @@ GHCi, version 8.6.3: http://www.haskell.org/ghc/  :? for help
 Ok, one module loaded.
 *Quiz01> 56 `と` 97 `と` 33 `の` 和
 186 
-*Quiz01> 56 `と` 97 `と` 33 `の` 積▽g
+*Quiz01> 56 `と` 97 `と` 33 `の` 積
 179256
 -}
 {-# LANGUAGE FlexibleInstances #-}
