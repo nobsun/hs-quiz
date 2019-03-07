@@ -5,44 +5,45 @@ GHCi, version 8.6.3: http://www.haskell.org/ghc/  :? for help
 Ok, one module loaded.
 *Quiz01> 56 `と` 97 `と` 33 `の` 和
 186 
-*Quiz01> 56 `と` 97 `と` 33 `の` 積
+*Quiz01> 56 `と` 97 `と` 33 `の` 積▽g
 179256
 -}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module Quiz01 where
 
-newtype N a = N {unN :: [a]}
+import Data.Function
 
-instance Show a => Show (N a) where
-  show (N xs) = if singleton xs then show $ head xs else show xs
-    where
-      singleton [_] = True
-      singleton _   = False
+type M a = (a -> a -> a) -> a
 
-instance Num a => Num (N a) where
-  (+) = mkmbo (+)
-  (*) = mkmbo (*)
-  (-) = mkmbo (-)
-  abs = mkmuo abs
-  signum = mkmuo signum
-  fromInteger x = N [fromInteger x]
-  
-mkmbo :: (a -> a -> a) -> (N a -> N a -> N a)
-mkmbo f m n = N [foldr1 f (unN m) `f` foldr1 f (unN n)]
+instance Show a => Show (M a) where
+  show = show . ($ const)
 
-mkmuo :: (a -> a) -> (N a -> N a)
-mkmuo f = N . (f <$>) . unN
+instance Num a => Num (M a) where
+  (+) = mkbop (+)
+  (-) = mkbop (-)
+  (*) = mkbop (*)
+  abs = mkuop abs
+  signum = mkuop signum
+  fromInteger = const . fromInteger
 
-と :: N a -> N a -> N a
-と m n = N $ unN m <> unN n
+mkbop :: (a -> a -> a) -> M a -> M a -> M a
+mkbop bop m n = const (bop (m bop) (n bop))
 
-の :: N a -> (N a -> N a) -> N a
-の = flip ($)
+mkuop :: (a -> a) -> M a -> M a
+mkuop uop m = const (uop (m const))
 
-aggr :: (a -> a -> a) -> (N a -> N a)
-aggr f n = N [foldl1 f (unN n)]
+と :: M a -> M a -> M a
+と m n bop = bop (m bop) (n bop) 
 
-和 :: Num a => N a -> N a
-和 = aggr (+)
+の :: M a -> (M a -> M a) -> M a
+の = (&)
 
-積 :: Num a => N a -> N a
-積 = aggr (*)
+infixl 1 `の`
+
+和 :: Num a => M a -> M a
+和 m = const (m (+))
+
+積 :: Num a => M a -> M a
+積 m = const (m (*))
